@@ -94,7 +94,6 @@ fig7.update_layout(mapbox_style="open-street-map")
 fig7.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 
 fig8 = px.scatter_matrix(df4)
-fig8.show()
 
 ###Getting the states Long and Lat###
 sns.set(style= "whitegrid", palette="pastel", color_codes=True)
