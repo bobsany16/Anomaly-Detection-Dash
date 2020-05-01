@@ -5,9 +5,6 @@ import dash_html_components as html
 import pandas as pd
 from dash.dependencies import Input, Output
 import plotly.express as px
-from pylab import *
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.utils import shuffle
 import numpy as np
 
@@ -94,10 +91,6 @@ fig7.update_layout(mapbox_style="open-street-map")
 fig7.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 
 fig8 = px.scatter_matrix(df4)
-
-###Getting the states Long and Lat###
-sns.set(style= "whitegrid", palette="pastel", color_codes=True)
-sns.mpl.rc("figure", figsize=(10,6))
 
 ###Showing Original Table###
 def generate_table(data, max_rows=5):
