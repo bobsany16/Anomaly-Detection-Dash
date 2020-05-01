@@ -1,3 +1,4 @@
+import os
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -9,7 +10,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.utils import shuffle
 import numpy as np
-import os
+
 
 
 
