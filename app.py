@@ -153,13 +153,12 @@ app.layout = html.Div(children=[
     ], style={'display': 'flex', 'flex-direction':'column', 'justify-content': 'center', 'align-items': 'center'}),
 
 
-    html.Div(id='graph-display',
+    html.Div(id='graph-display', 
 
-             style={'display': 'flex', 'flex-direction': 'row', 'flex-wrap':'wrap'}),
+                 style={'display': 'flex', 'flex-direction': 'row', 'flex-wrap':'wrap'}),
 
-             style={'display': 'flex', 'flex-direction': 'row'}),
 
-    
+
 ], style={'width': '100%', 'height': '100%', 'display': 'flex', 'justify-content': 'center', 'text-align': 'center', 'flex-direction': 'column'})
 
 
@@ -174,9 +173,6 @@ def update_graph(value):
     else:
         return dcc.Graph(figure=fig), dcc.Graph(figure=fig4), dcc.Graph(figure=fig6)
 
-        return dcc.Graph(figure=fig2), dcc.Graph(figure=fig5)
-    else:
-        return dcc.Graph(figure=fig), dcc.Graph(figure=fig4)
 
 
 
