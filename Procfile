@@ -1,1 +1,1 @@
-web: gunicorn ANOMALY-DETECTION-DASH.app --log-file -
+web: gunicorn app.py --log-file -
