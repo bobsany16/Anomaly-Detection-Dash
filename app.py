@@ -9,6 +9,8 @@ import shapefile as shp
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.utils import shuffle
+import numpy as np
+
 
 
 ###Reading .csv files###
@@ -19,6 +21,10 @@ df = dataset.drop(['cycle', 'branch', 'type', 'forecastdate', 'matchup', 'enddat
 df['startdate'] = pd.to_datetime(df.startdate)
 df.sort_values(by='startdate')
 
+
+
+###Read Latlong file###
+df_latlong = pd.read_csv('statelatlong.csv')
 
 
 ###Combining Congressional Districts###
@@ -38,6 +44,24 @@ df.drop(indexNames, inplace=True)
 
 ###Creating final Datasets###
 df2 = shuffle(df, random_state=42)
+
+
+###Change NAN grade to F###
+df2 = df2.replace(np.nan, 'F', regex=True)
+
+###Adding Lat Long to exsiting Dataset###
+def addLatLong(type):
+    list1 = []
+    list2 = []
+    for i in list(df2['state']):
+        list1.append(list(df_latlong[df_latlong['City']==i][type]))
+    for i in list1:
+        list2.append(i[0])
+    return list2
+
+df2['lat'] = addLatLong('Latitude')
+df2['long'] = addLatLong('Longitude')
+
 df3 = df2
 df4 = df3
 df_clinton = df2.drop(['adjpoll_trump'], axis=1)
@@ -57,28 +81,23 @@ fig5 = px.box(df_trump, x="state", y="adjpoll_trump", notched=True)
                   #color_continuous_scale=px.colors.cyclical.IceFire, size_max=15, zoom=10)
 #fig6.show()
 
+
+fig6 = px.scatter_mapbox(df_clinton, lat="lat", lon="long", hover_name="state", hover_data=["state", "adjpoll_clinton"],
+                        color='grade', size='adjpoll_clinton' , zoom=3, height=400)
+fig6.update_layout(mapbox_style="open-street-map")
+fig6.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+
+fig7 = px.scatter_mapbox(df_trump, lat="lat", lon="long", hover_name="state", hover_data=["state",'adjpoll_trump'],
+                        color='grade', size='adjpoll_trump', zoom=3, height=400)
+fig7.update_layout(mapbox_style="open-street-map")
+fig7.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+
+fig8 = px.scatter_matrix(df4)
+fig8.show()
+
 ###Getting the states Long and Lat###
 sns.set(style= "whitegrid", palette="pastel", color_codes=True)
 sns.mpl.rc("figure", figsize=(10,6))
-
-shp_path = "cb_2018_us_state_5m/cb_2018_us_state_5m.shp"
-sf = shp.Reader(shp_path)
-len(sf.shapes())
-
-def read_shapefile(sf):
-    """
-    Read a shapefile into a Pandas dataframe with a 'coords' 
-    column holding the geometry information. This uses the pyshp
-    package
-    """
-    fields = [x[0] for x in sf.fields][1:]
-    records = sf.records()
-    shps = [s.points for s in sf.shapes()]
-    df = pd.DataFrame(columns=fields, data=records)
-    df = df.assign(coords=shps)
-    return df
-
-df_map = read_shapefile(sf)
 
 ###Showing Original Table###
 def generate_table(data, max_rows=5):
@@ -96,6 +115,9 @@ def generate_table(data, max_rows=5):
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
+app.config.suppress_callback_exceptions = True
+
 
 app.layout = html.Div(children=[
     html.H1(children='Anomaly Detection', style={
@@ -132,7 +154,11 @@ app.layout = html.Div(children=[
 
 
     html.Div(id='graph-display',
+
+             style={'display': 'flex', 'flex-direction': 'row', 'flex-wrap':'wrap'}),
+
              style={'display': 'flex', 'flex-direction': 'row'}),
+
     
 ], style={'width': '100%', 'height': '100%', 'display': 'flex', 'justify-content': 'center', 'text-align': 'center', 'flex-direction': 'column'})
 
@@ -143,9 +169,15 @@ app.layout = html.Div(children=[
 )
 def update_graph(value):
     if (value == 'Trump'):
+
+        return dcc.Graph(figure=fig2), dcc.Graph(figure=fig5), dcc.Graph(figure=fig7)
+    else:
+        return dcc.Graph(figure=fig), dcc.Graph(figure=fig4), dcc.Graph(figure=fig6)
+
         return dcc.Graph(figure=fig2), dcc.Graph(figure=fig5)
     else:
         return dcc.Graph(figure=fig), dcc.Graph(figure=fig4)
+
 
 
 if __name__ == '__main__':
