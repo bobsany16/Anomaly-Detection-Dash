@@ -177,6 +177,8 @@ app.layout = html.Div(children=[
 def render_content(tab):
     if tab == 'tab-1':
         return tab1_content
+    else: 
+        return tab2_content
 
 ###Tab1_content when clicked Tab1###
 #----------------------------------------------------------------------#
@@ -224,11 +226,12 @@ def update_graph(value):
 #----------------------------------------------------------------------
 #----------------------------------------------------------------------
 ###Multiple Inputs, estimators and samples, contamination [they have to be sliders and drop-down]
-#tab2_content = html.Div([
+tab2_content = html.Div([
+    html.Div(id='output', children=[
+        generate_table(X_train)
+    ])
 
-
-
-#])
+])
 
 
 if __name__ == '__main__':
