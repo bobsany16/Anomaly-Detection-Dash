@@ -110,19 +110,19 @@ X_train = df6[features][:4992]
 X_valid = df6[features][4993:len(df6)]
 
 #Fitting the Isolation Forest#
-clf = IsolationForest(n_estimators=100, max_samples='auto', behaviour ='new', contamination=0.1, random_state=42)
-clf.fit(X_train)
+#clf = IsolationForest(n_estimators=100, max_samples='auto', contamination=0.1, random_state=42)
+#clf.fit(X_train)
 
-train_scores = clf.decision_function(X_train)
-val_scores = clf.decision_function(X_valid)
+#train_scores = clf.decision_function(X_train)
+#val_scores = clf.decision_function(X_valid)
 
 #Predictions & scores for Validation Set#
-X_valid['anomaly'] = clf.predict(X_valid)
-X_valid['scores'] = val_scores
+#X_valid['anomaly'] = clf.predict(X_valid)
+#X_valid['scores'] = val_scores
 
 #Prediction & scores for Training Set#
-X_train['anomaly']=clf.predict(X_train)
-X_train['scores']=train_scores
+#X_train['anomaly']=clf.predict(X_train)
+#X_train['scores']=train_scores
 
 #Get State and Grade Back#
 #Add Lat and Long#
@@ -228,7 +228,7 @@ def update_graph(value):
 ###Multiple Inputs, estimators and samples, contamination [they have to be sliders and drop-down]
 tab2_content = html.Div([
     html.Div(id='output', children=[
-        generate_table(X_train)
+        generate_table(df_clinton)
     ])
 
 ])
