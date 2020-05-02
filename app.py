@@ -49,7 +49,7 @@ df2 = shuffle(df, random_state=42)
 
 ###Change NAN grade to F###
 df2 = df2.replace(np.nan, 'F', regex=True)
-df6 = df2 #Without Lat Long for ML purposes.
+#df6 = df2 #Without Lat Long for ML purposes.
 
 ###Adding Lat Long to exsiting Dataset###
 def addLatLong(type):
@@ -93,21 +93,21 @@ fig7.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 ###Machine Learning Part###
 ###########################
 ###########################
-features = df6.columns
+#features = df6.columns
 
 #Encoding Labels for datasets#
-le1 = preprocessing.LabelEncoder()
-le2 = preprocessing.LabelEncoder()
+#le1 = preprocessing.LabelEncoder()
+#le2 = preprocessing.LabelEncoder()
 
-df6['state'] = le2.fit_transform(list(df6['state']))
-df6['grade'] = le1.fit_transform(list(df6['grade']))
+#df6['state'] = le2.fit_transform(list(df6['state']))
+#df6['grade'] = le1.fit_transform(list(df6['grade']))
 
 
 # Training Set
-X_train = df6[features][:4992]
+#X_train = df6[features][:4992]
 
 # Validation Set
-X_valid = df6[features][4993:len(df6)]
+#X_valid = df6[features][4993:len(df6)]
 
 #Fitting the Isolation Forest#
 #clf = IsolationForest(n_estimators=100, max_samples='auto', contamination=0.1, random_state=42)
@@ -227,9 +227,10 @@ def update_graph(value):
 #----------------------------------------------------------------------
 ###Multiple Inputs, estimators and samples, contamination [they have to be sliders and drop-down]
 tab2_content = html.Div([
-    html.Div(id='output', children=[
-        generate_table(df_clinton)
-    ])
+    html.Div(id='output', children=
+        '''Hi, welcome to tab 2
+        '''
+    ),
 
 ])
 
