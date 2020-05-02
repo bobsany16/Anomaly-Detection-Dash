@@ -228,7 +228,7 @@ def update_graph(value):
 ###Multiple Inputs, estimators and samples, contamination [they have to be sliders and drop-down]
 tab2_content = html.Div([
     html.Div(id='output', children=
-        '''Hi, welcome to tab 2
+        '''Hi, welcome to tab 2 From Test Branch
         '''
     ),
 
