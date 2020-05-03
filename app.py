@@ -389,33 +389,33 @@ def update_ml_graph(my_data, est_val, cont_val, rand_val):
     clf = update_clf(est_val, 'auto', 'new', cont_val, rand_val)
     clf.fit(X_train)
     if my_data == 'Valid':
-        #train_scores = clf.decision_function(X_train)
         val_scores = clf.decision_function(X_valid)
+        X_val_res = X_valid.copy()
 
         #Predictions & scores for Validation Set#
-        X_valid['anomaly'] = clf.predict(X_valid)
-        X_valid['scores'] = val_scores
+        X_val_res['anomaly'] = clf.predict(X_valid)
+        X_val_res['scores'] = val_scores
         #Get State and Grade Back#
-        X_valid['state'] = list(le2.inverse_transform(X_valid['state']))
-        X_valid['grade'] = list(le1.inverse_transform(X_valid['grade']))
-        fig9 = px.choropleth(X_valid, locations=list(X_valid['state']), locationmode="USA-states", color='anomaly', scope="usa",
+        X_val_res['state'] = list(le2.inverse_transform(X_val_res['state']))
+        X_val_res['grade'] = list(le1.inverse_transform(X_val_res['grade']))
+        fig9 = px.choropleth(X_val_res, locations=list(X_val_res['state']), locationmode="USA-states", color='anomaly', scope="usa",
                              color_continuous_scale='Blackbody', hover_name="state", hover_data=["state", 'adjpoll_trump', 'adjpoll_clinton'])
+        
         return dcc.Graph(figure=fig9)
     else:
         train_scores = clf.decision_function(X_train)
-        #Predictions & scores for Validation Set#
-        X_train['anomaly'] = clf.predict(X_train)
-        X_train['scores'] = train_scores
 
-        #Prediction & scores for Training Set#
-        X_train['anomaly'] = clf.predict(X_train)
-        X_train['scores'] = train_scores
+        X_train_res = X_train.copy()
+        #Predictions & scores for Validation Set#
+        X_train_res['anomaly'] = clf.predict(X_train)
+        X_train_res['scores'] = train_scores
 
         #Get State and Grade Back#
-        X_train['state'] = list(le2.inverse_transform(X_train['state']))
-        X_train['grade'] = list(le1.inverse_transform(X_train['grade']))
-        fig10 = px.choropleth(X_train, locations=list(X_train['state']), locationmode="USA-states", color='anomaly', scope="usa",
+        X_train_res['state'] = list(le2.inverse_transform(X_train_res['state']))
+        X_train_res['grade'] = list(le1.inverse_transform(X_train_res['grade']))
+        fig10 = px.choropleth(X_train_res, locations=list(X_train_res['state']), locationmode="USA-states", color='anomaly', scope="usa",
                               color_continuous_scale='Blackbody', hover_name="state", hover_data=["state", 'adjpoll_trump', 'adjpoll_clinton'])
+        
         return dcc.Graph(figure=fig10)
 
 
