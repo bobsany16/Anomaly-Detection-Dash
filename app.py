@@ -49,20 +49,21 @@ df2 = shuffle(df, random_state=42)
 
 ###Change NAN grade to F###
 df2 = df2.replace(np.nan, 'F', regex=True)
-#df6 = df2 #Without Lat Long for ML purposes.
+df6 = df2.copy() #Without Lat Long for ML purposes.
+df6 = df6.drop(['startdate'], axis=1)
 
 ###Adding Lat Long to exsiting Dataset###
-def addLatLong(type):
+def addLatLong(dataset2, type):
     list1 = []
     list2 = []
-    for i in list(df2['state']):
+    for i in list(dataset2['state']):
         list1.append(list(df_latlong[df_latlong['City']==i][type]))
     for i in list1:
         list2.append(i[0])
     return list2
 
-df2['lat'] = addLatLong('Latitude')
-df2['long'] = addLatLong('Longitude')
+df2['lat'] = addLatLong(df2, 'Latitude')
+df2['long'] = addLatLong(df2, 'Longitude')
 
 df3 = df2
 df4 = df3
@@ -93,40 +94,50 @@ fig7.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 ###Machine Learning Part###
 ###########################
 ###########################
-#features = df6.columns
+features = df6.columns
 
 #Encoding Labels for datasets#
-#le1 = preprocessing.LabelEncoder()
-#le2 = preprocessing.LabelEncoder()
+le1 = preprocessing.LabelEncoder()
+le2 = preprocessing.LabelEncoder()
 
-#df6['state'] = le2.fit_transform(list(df6['state']))
-#df6['grade'] = le1.fit_transform(list(df6['grade']))
+df6['state'] = le2.fit_transform(list(df6['state']))
+df6['grade'] = le1.fit_transform(list(df6['grade']))
 
 
 # Training Set
-#X_train = df6[features][:4992]
+X_train = df6[features][:4992]
 
 # Validation Set
-#X_valid = df6[features][4993:len(df6)]
+X_valid = df6[features][4993:len(df6)]
 
 #Fitting the Isolation Forest#
-#clf = IsolationForest(n_estimators=100, max_samples='auto', contamination=0.1, random_state=42)
-#clf.fit(X_train)
+clf = IsolationForest(n_estimators=100, max_samples='auto', behaviour="new", contamination=0.1, random_state=42)
+clf.fit(X_train)
 
-#train_scores = clf.decision_function(X_train)
-#val_scores = clf.decision_function(X_valid)
+train_scores = clf.decision_function(X_train)
+val_scores = clf.decision_function(X_valid)
 
 #Predictions & scores for Validation Set#
-#X_valid['anomaly'] = clf.predict(X_valid)
-#X_valid['scores'] = val_scores
+X_valid['anomaly'] = clf.predict(X_valid)
+X_valid['scores'] = val_scores
 
 #Prediction & scores for Training Set#
-#X_train['anomaly']=clf.predict(X_train)
-#X_train['scores']=train_scores
+X_train['anomaly']=clf.predict(X_train)
+X_train['scores']=train_scores
 
 #Get State and Grade Back#
+X_valid['state'] = list(le2.inverse_transform(X_valid['state']))
+X_valid['grade'] = list(le1.inverse_transform(X_valid['grade']))
 #Add Lat and Long#
 
+X_valid['lat'] = addLatLong(X_valid, 'Latitude')
+X_valid['long'] = addLatLong(X_valid, 'Longitude')
+
+###Mapping Anomalies to States###
+fig8 = px.scatter_mapbox(X_valid, lat="lat", lon="long", hover_name="state", hover_data=["state",'adjpoll_trump', 'adjpoll_clinton'],
+                        color='anomaly', zoom=3, height=400, color_continuous_scale='Bluered_r', title="Predicted Anomalies for X_valid set")
+fig8.update_layout(mapbox_style="open-street-map")
+fig8.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 
 ###Showing Original Table###
 def generate_table(data, max_rows=5):
@@ -228,9 +239,11 @@ def update_graph(value):
 ###Multiple Inputs, estimators and samples, contamination [they have to be sliders and drop-down]
 tab2_content = html.Div([
     html.Div(id='output', children=
-        '''Hi, welcome to tab 2 From Test Branch
+        '''Possible predicted anomalies on X-valid set
         '''
     ),
+    dcc.Graph(figure=fig8)
+
 
 ])
 
