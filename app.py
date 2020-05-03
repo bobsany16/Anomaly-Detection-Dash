@@ -163,55 +163,30 @@ le2 = preprocessing.LabelEncoder()
 df6['state'] = le2.fit_transform(list(df6['state']))
 df6['grade'] = le1.fit_transform(list(df6['grade']))
 
-
 # Training Set
 X_train = df6[features][:4992]
 
 # Validation Set
 X_valid = df6[features][4993:len(df6)]
 
-#Reusable compoenent for clf#
-
-
+#Reusable clf function
 def update_clf(est, sample, behave, contam, rand_state):
     return IsolationForest(n_estimators=est, max_samples=sample, behaviour=behave, contamination=contam, random_state=rand_state)
 
-#Fitting the Isolation Forest#
-#clf = IsolationForest(n_estimators=100, max_samples='auto', behaviour="new", contamination=0.1, random_state=42)
-# clf.fit(X_train)
-#clf = update_clf(100, 'auto', 'new', 0.1, 42)
-# clf.fit(X_train)
+#Reusable updating anomaly and scores#
+def update_anomaly_scores(fitter, _data):
+    scores = fitter.decision_function(_data)
+    X_res = _data.copy()
 
-#train_scores = clf.decision_function(X_train)
-#val_scores = clf.decision_function(X_valid)
-
-#Predictions & scores for Validation Set#
-#X_valid['anomaly'] = clf.predict(X_valid)
-#X_valid['scores'] = val_scores
-
-#Prediction & scores for Training Set#
-# X_train['anomaly']=clf.predict(X_train)
-# X_train['scores']=train_scores
-
-#Get State and Grade Back#
-##X_valid['state'] = list(le2.inverse_transform(X_valid['state']))
-#X_valid['grade'] = list(le1.inverse_transform(X_valid['grade']))
-#Add Lat and Long#
-
-#X_valid['lat'] = addLatLong(X_valid, 'State', 'Latitude')
-#X_valid['long'] = addLatLong(X_valid, 'State', 'Longitude')
-
-###Mapping Anomalies to States###
-# fig8 = px.scatter_mapbox(X_valid, lat="lat", lon="long", hover_name="state", hover_data=["state",'adjpoll_trump', 'adjpoll_clinton'],
-    # color='anomaly', zoom=3, height=400, color_continuous_scale='Blackbody', title="Predicted Anomalies for X_valid set")
-# fig8.update_layout(mapbox_style="open-street-map")
-# fig8.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-
-#fig9 = px.choropleth(X_valid, locations=list(X_valid['state']), locationmode="USA-states", color='anomaly', scope="usa", color_continuous_scale='Blackbody',hover_name="state", hover_data=["state",'adjpoll_trump', 'adjpoll_clinton'])
+    #Predictions & scores for Validation Set#
+    X_res['anomaly'] = fitter.predict(_data)
+    X_res['scores'] = scores
+    #Get State and Grade Back#
+    X_res['state'] = list(le2.inverse_transform(X_res['state']))
+    X_res['grade'] = list(le1.inverse_transform(X_res['grade']))
+    return X_res
 
 ###Showing Original Table###
-
-
 def generate_table(data, max_rows=5):
     return html.Table([
         html.Thead(
@@ -389,33 +364,14 @@ def update_ml_graph(my_data, est_val, cont_val, rand_val):
     clf = update_clf(est_val, 'auto', 'new', cont_val, rand_val)
     clf.fit(X_train)
     if my_data == 'Valid':
-        val_scores = clf.decision_function(X_valid)
-        X_val_res = X_valid.copy()
-
-        #Predictions & scores for Validation Set#
-        X_val_res['anomaly'] = clf.predict(X_valid)
-        X_val_res['scores'] = val_scores
-        #Get State and Grade Back#
-        X_val_res['state'] = list(le2.inverse_transform(X_val_res['state']))
-        X_val_res['grade'] = list(le1.inverse_transform(X_val_res['grade']))
+        X_val_res = update_anomaly_scores(clf, X_valid)
         fig9 = px.choropleth(X_val_res, locations=list(X_val_res['state']), locationmode="USA-states", color='anomaly', scope="usa",
                              color_continuous_scale='Blackbody', hover_name="state", hover_data=["state", 'adjpoll_trump', 'adjpoll_clinton'])
-        
         return dcc.Graph(figure=fig9)
     else:
-        train_scores = clf.decision_function(X_train)
-
-        X_train_res = X_train.copy()
-        #Predictions & scores for Validation Set#
-        X_train_res['anomaly'] = clf.predict(X_train)
-        X_train_res['scores'] = train_scores
-
-        #Get State and Grade Back#
-        X_train_res['state'] = list(le2.inverse_transform(X_train_res['state']))
-        X_train_res['grade'] = list(le1.inverse_transform(X_train_res['grade']))
+        X_train_res = update_anomaly_scores(clf, X_train)
         fig10 = px.choropleth(X_train_res, locations=list(X_train_res['state']), locationmode="USA-states", color='anomaly', scope="usa",
                               color_continuous_scale='Blackbody', hover_name="state", hover_data=["state", 'adjpoll_trump', 'adjpoll_clinton'])
-        
         return dcc.Graph(figure=fig10)
 
 
