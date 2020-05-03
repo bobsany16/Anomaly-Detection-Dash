@@ -139,6 +139,8 @@ fig8 = px.scatter_mapbox(X_valid, lat="lat", lon="long", hover_name="state", hov
 fig8.update_layout(mapbox_style="open-street-map")
 fig8.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 
+fig9 = px.choropleth(X_valid, locations=list(X_valid['state']), locationmode="USA-states", color='anomaly', scope="usa", color_continuous_scale='Bluered_r',hover_name="state", hover_data=["state",'adjpoll_trump', 'adjpoll_clinton'])
+
 ###Showing Original Table###
 def generate_table(data, max_rows=5):
     return html.Table([
@@ -242,7 +244,7 @@ tab2_content = html.Div([
         '''Possible predicted anomalies on X-valid set
         '''
     ),
-    dcc.Graph(figure=fig8)
+    dcc.Graph(figure=fig9)
 
 
 ])
