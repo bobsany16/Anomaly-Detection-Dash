@@ -9,31 +9,22 @@ from sklearn.utils import shuffle
 import numpy as np
 from sklearn.ensemble import IsolationForest
 from sklearn import preprocessing
-
+from components.my_functions import update_clf, update_anomaly_scores, generate_table, combineCD
+from components.lat_long import addLatLong
+from components.state import state_to_abr
+from components.figure_functions import get_plot, get_scatter_mapbox, get_choropleth
 
 ###Reading .csv files###
 ###And sort according to date###
-dataset = pd.read_csv('presidential_polls.csv')
+dataset = pd.read_csv('static/presidential_polls.csv')
 df = dataset.drop(['cycle', 'branch', 'type', 'forecastdate', 'matchup', 'enddate', 'pollster', 'samplesize', 'population', 'poll_wt', 'rawpoll_clinton', 'rawpoll_trump', 'rawpoll_johnson',
                    'rawpoll_mcmullin', 'adjpoll_johnson', 'adjpoll_johnson', 'adjpoll_mcmullin', 'multiversions', 'url', 'poll_id', 'question_id', 'createddate', 'timestamp'], axis=1)
 df['startdate'] = pd.to_datetime(df.startdate)
 df.sort_values(by='startdate')
 
-
-###Read Latlong file###
-df_latlong = pd.read_csv('statelatlong.csv')
-
-
 ###Combining Congressional Districts###
-def combineCD(state, n):
-    for i in range(1, n):
-        my_state = state + " CD-" + str(i)
-        df.loc[df['state'] == my_state, 'state'] = state
-    return df[df['state'] == state].shape
-
-
-combineCD('Maine', 3)
-combineCD('Nebraska', 4)
+combineCD('Maine', df, 3)
+combineCD('Nebraska', df, 4)
 
 ###Making a different dataset with US state and dropping it from OG dataset###
 df_US = df[df['state'] == "U.S."]
@@ -43,112 +34,28 @@ df.drop(indexNames, inplace=True)
 ###Creating final Datasets###
 df2 = shuffle(df, random_state=42)
 
-
 ###Change NAN grade to F###
 df2 = df2.replace(np.nan, 'F', regex=True)
 df6 = df2.copy()  # Without Lat Long for ML purposes.
 df6 = df6.drop(['startdate'], axis=1)
 
 
-###Changing states to abrs###
-state_abr = {'Alabama': 'AL',
-             'Alaska': 'AK',
-             'Arizona': 'AZ',
-             'Arkansas': 'AR',
-             'California': 'CA',
-             'Colorado': 'CO',
-             'Connecticut': 'CT',
-             'Delaware': 'DE',
-             'District of Columbia': 'DC',
-             'Florida': 'FL',
-             'Georgia': 'GA',
-             'Hawaii': 'HI',
-             'Idaho': 'ID',
-             'Illinois': 'IL',
-             'Indiana': 'IN',
-             'Iowa': 'IA',
-             'Kansas': 'KS',
-             'Kentucky': 'KY',
-             'Louisiana': 'LA',
-             'Maine': 'ME',
-             'Maryland': 'MD',
-             'Massachusetts': 'MA',
-             'Michigan': 'MI',
-             'Minnesota': 'MN',
-             'Mississippi': 'MS',
-             'Missouri': 'MO',
-             'Montana': 'MT',
-             'Nebraska': 'NE',
-             'Nevada': 'NV',
-             'New Hampshire': 'NH',
-             'New Jersey': 'NJ',
-             'New Mexico': 'NM',
-             'New York': 'NY',
-             'North Carolina': 'NC',
-             'North Dakota': 'ND',
-             'Ohio': 'OH',
-             'Oklahoma': 'OK',
-             'Oregon': 'OR',
-             'Pennsylvania': 'PA',
-             'Rhode Island': 'RI',
-             'South Carolina': 'SC',
-             'South Dakota': 'SD',
-             'Tennessee': 'TN',
-             'Texas': 'TX',
-             'Utah': 'UT',
-             'Vermont': 'VT',
-             'Virgin Islands': 'VI',
-             'Virginia': 'VA',
-             'Washington': 'WA',
-             'West Virginia': 'WV',
-             'Wisconsin': 'WI',
-             'Wyoming': 'WY'}
-
-res = []
-for i in list(df6['state']):
-    res.append(state_abr[i])
-
-df6['state'] = res
-
-
-###Adding Lat Long to exsiting Dataset###
-def addLatLong(dataset2, type1, type):
-    list1 = []
-    list2 = []
-    for i in list(dataset2['state']):
-        list1.append(list(df_latlong[df_latlong[type1] == i][type]))
-    for i in list1:
-        list2.append(i[0])
-    return list2
-
-
+df6['state'] = state_to_abr(df6)
 df2['lat'] = addLatLong(df2, 'City', 'Latitude')
 df2['long'] = addLatLong(df2, 'City', 'Longitude')
-
 df3 = df2
 df4 = df3
 df_clinton = df2.drop(['adjpoll_trump'], axis=1)
 df_trump = df3.drop(['adjpoll_clinton'], axis=1)
 
 ###Figures###
-fig = px.scatter(df_clinton, x='startdate', y='adjpoll_clinton',
-                 color='state', hover_name='grade', size_max=60)
-fig2 = px.scatter(df_trump, x='startdate', y='adjpoll_trump',
-                  color='state', hover_name='grade', size_max=60)
+fig = get_plot(df_clinton, 'scatter', 'adjpoll_clinton')
+fig2 = get_plot(df_trump, 'scatter', 'adjpoll_trump')
 fig3 = px.strip(df4, x="startdate", y="grade", orientation="h", color='state')
-
-fig4 = px.box(df_clinton, x="state", y="adjpoll_clinton", notched=True)
-fig5 = px.box(df_trump, x="state", y="adjpoll_trump", notched=True)
-
-fig6 = px.scatter_mapbox(df_clinton, lat="lat", lon="long", hover_name="state", hover_data=["state", "adjpoll_clinton"],
-                         color='grade', size='adjpoll_clinton', zoom=3, height=400)
-fig6.update_layout(mapbox_style="open-street-map")
-fig6.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
-
-fig7 = px.scatter_mapbox(df_trump, lat="lat", lon="long", hover_name="state", hover_data=["state", 'adjpoll_trump'],
-                         color='grade', size='adjpoll_trump', zoom=3, height=400)
-fig7.update_layout(mapbox_style="open-street-map")
-fig7.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+fig4 = get_plot(df_clinton, 'box', 'adjpoll_clinton')
+fig5 = get_plot(df_trump, 'box', 'adjpoll_trump')
+fig6 = get_scatter_mapbox(df_clinton, 'adjpoll_clinton')
+fig7 = get_scatter_mapbox(df_trump, 'adjpoll_trump')
 
 
 ###Machine Learning Part###
@@ -168,36 +75,6 @@ X_train = df6[features][:4992]
 
 # Validation Set
 X_valid = df6[features][4993:len(df6)]
-
-#Reusable clf function
-def update_clf(est, sample, behave, contam, rand_state):
-    return IsolationForest(n_estimators=est, max_samples=sample, behaviour=behave, contamination=contam, random_state=rand_state)
-
-#Reusable updating anomaly and scores#
-def update_anomaly_scores(fitter, _data):
-    scores = fitter.decision_function(_data)
-    X_res = _data.copy()
-
-    #Predictions & scores for Validation Set#
-    X_res['anomaly'] = fitter.predict(_data)
-    X_res['scores'] = scores
-    #Get State and Grade Back#
-    X_res['state'] = list(le2.inverse_transform(X_res['state']))
-    X_res['grade'] = list(le1.inverse_transform(X_res['grade']))
-    return X_res
-
-###Showing Original Table###
-def generate_table(data, max_rows=5):
-    return html.Table([
-        html.Thead(
-            html.Tr([html.Th(col) for col in data.columns])
-        ),
-        html.Tbody([
-            html.Tr([
-                html.Td(data.iloc[i][col]) for col in data.columns
-            ]) for i in range(min(len(data), max_rows))
-        ])
-    ])
 
 
 ###Actual Dash session###
@@ -364,14 +241,12 @@ def update_ml_graph(my_data, est_val, cont_val, rand_val):
     clf = update_clf(est_val, 'auto', 'new', cont_val, rand_val)
     clf.fit(X_train)
     if my_data == 'Valid':
-        X_val_res = update_anomaly_scores(clf, X_valid)
-        fig9 = px.choropleth(X_val_res, locations=list(X_val_res['state']), locationmode="USA-states", color='anomaly', scope="usa",
-                             color_continuous_scale='Blackbody', hover_name="state", hover_data=["state", 'adjpoll_trump', 'adjpoll_clinton'])
+        X_val_res = update_anomaly_scores(clf, le2, le1, X_valid)
+        fig9 = get_choropleth(X_val_res)
         return dcc.Graph(figure=fig9)
     else:
-        X_train_res = update_anomaly_scores(clf, X_train)
-        fig10 = px.choropleth(X_train_res, locations=list(X_train_res['state']), locationmode="USA-states", color='anomaly', scope="usa",
-                              color_continuous_scale='Blackbody', hover_name="state", hover_data=["state", 'adjpoll_trump', 'adjpoll_clinton'])
+        X_train_res = update_anomaly_scores(clf, le2, le1,X_train)
+        fig10 = get_choropleth(X_train_res)
         return dcc.Graph(figure=fig10)
 
 
