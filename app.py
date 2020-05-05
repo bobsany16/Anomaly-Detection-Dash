@@ -46,7 +46,9 @@ df2['long'] = addLatLong(df2, 'City', 'Longitude')
 df3 = df2
 df4 = df3
 df_clinton = df2.drop(['adjpoll_trump'], axis=1)
+df_clinton['state']=state_to_abr(df_clinton)
 df_trump = df3.drop(['adjpoll_clinton'], axis=1)
+df_trump['state']=state_to_abr(df_trump)
 
 ###Figures###
 fig = get_plot(df_clinton, 'scatter', 'adjpoll_clinton')
@@ -54,8 +56,10 @@ fig2 = get_plot(df_trump, 'scatter', 'adjpoll_trump')
 fig3 = px.strip(df4, x="startdate", y="grade", orientation="h", color='state')
 fig4 = get_plot(df_clinton, 'box', 'adjpoll_clinton')
 fig5 = get_plot(df_trump, 'box', 'adjpoll_trump')
-fig6 = get_scatter_mapbox(df_clinton, 'adjpoll_clinton')
-fig7 = get_scatter_mapbox(df_trump, 'adjpoll_trump')
+#fig6 = get_scatter_mapbox(df_clinton, 'adjpoll_clinton')
+#fig7 = get_scatter_mapbox(df_trump, 'adjpoll_trump')
+fig6 = get_choropleth(df_clinton, 'adjpoll_clinton', ["state", 'adjpoll_clinton'])
+fig7 = get_choropleth(df_trump, 'adjpoll_trump', ["state", 'adjpoll_trump'])
 
 
 ###Machine Learning Part###
@@ -145,7 +149,7 @@ tab1_content = html.Div([
             value='Clinton',
             style={'margin-top': '2em', 'align-items': 'center', 'width': '450px', 'cursor': 'default'})]),
     ], style={'display': 'flex', 'flex-direction': 'column', 'justify-content': 'center', 'align-items': 'center'}),
-    html.Div(id='graph-display', style={'display': 'flex', 'flex-direction': 'row', 'flex-wrap': 'wrap'})])
+    html.Div(id='graph-display', style={'display': 'flex', 'flex-direction': 'column', 'width': '100vw', 'height': '100vh'})])
 
 
 @app.callback(
@@ -242,11 +246,11 @@ def update_ml_graph(my_data, est_val, cont_val, rand_val):
     clf.fit(X_train)
     if my_data == 'Valid':
         X_val_res = update_anomaly_scores(clf, le2, le1, X_valid)
-        fig9 = get_choropleth(X_val_res)
+        fig9 = get_choropleth(X_val_res, 'anomaly', ["state", 'adjpoll_trump', 'adjpoll_clinton'])
         return dcc.Graph(figure=fig9)
     else:
         X_train_res = update_anomaly_scores(clf, le2, le1,X_train)
-        fig10 = get_choropleth(X_train_res)
+        fig10 = get_choropleth(X_train_res, 'anomaly', ["state", 'adjpoll_trump', 'adjpoll_clinton'])
         return dcc.Graph(figure=fig10)
 
 

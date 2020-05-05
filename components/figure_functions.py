@@ -8,7 +8,7 @@ import plotly.express as px
 def get_plot(my_data, plot_type, my_y_axis):
     if plot_type == 'scatter':
         return px.scatter(my_data, x='startdate', y=my_y_axis,
-                 color='state', hover_name='grade', size_max=60)
+                hover_name='grade', trendline="lowess", size_max=60)
     else: 
         return px.box(my_data, x="state", y=my_y_axis, notched=True)
 
@@ -19,6 +19,6 @@ def get_scatter_mapbox(my_data, size_var):
     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
     return fig
 
-def get_choropleth(my_data):
-    return px.choropleth(my_data, locations=list(my_data['state']), locationmode="USA-states", color='anomaly', scope="usa",
-                             color_continuous_scale='Blackbody', hover_name="state", hover_data=["state", 'adjpoll_trump', 'adjpoll_clinton'])
+def get_choropleth(my_data, cat_color, hover_list):
+    return px.choropleth(my_data, locations=list(my_data['state']), locationmode="USA-states", color=cat_color, scope="usa",
+                             color_continuous_scale='Blackbody', hover_name="state", hover_data=hover_list)
