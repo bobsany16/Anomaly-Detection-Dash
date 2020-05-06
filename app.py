@@ -15,6 +15,7 @@ from components.state import state_to_abr
 from components.figure_functions import get_plot, get_scatter_mapbox, get_choropleth
 from statistics import mean
 
+
 ###Reading .csv files###
 ###And sort according to date###
 dataset = pd.read_csv('static/presidential_polls.csv')
@@ -54,6 +55,7 @@ fig = get_plot(df_clinton, 'scatter', 'adjpoll_clinton')
 fig2 = get_plot(df_trump, 'scatter', 'adjpoll_trump')
 fig4 = get_plot(df_clinton, 'box', 'adjpoll_clinton')
 fig5 = get_plot(df_trump, 'box', 'adjpoll_trump')
+
 
 
 ###Machine Learning Part###

@@ -45,3 +45,4 @@ def is_anomaly(my_data, anom_yes_no):
     else: 
         my_sum['anomaly']=[i*-1 for i in list(my_sum['anomaly'])] 
         return my_sum
+

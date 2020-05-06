@@ -22,3 +22,4 @@ def get_scatter_mapbox(my_data, size_var):
 def get_choropleth(my_data, locations, cat_color):
     return px.choropleth(my_data, locations=my_data.index, locationmode="USA-states", color=cat_color, scope="usa",
                              color_continuous_scale='ice', hover_name=my_data.index, hover_data=['adjpoll_clinton', 'adjpoll_trump'])
+
