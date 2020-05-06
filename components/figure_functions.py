@@ -8,7 +8,7 @@ import plotly.express as px
 def get_plot(my_data, plot_type, my_y_axis):
     if plot_type == 'scatter':
         return px.scatter(my_data, x='startdate', y=my_y_axis,
-                hover_name='grade', trendline="lowess", size_max=60)
+                hover_name='grade', trendline="lowess", trendline_color_override="red",size_max=60)
     else: 
         return px.box(my_data, x="state", y=my_y_axis, notched=True)
 
