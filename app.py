@@ -13,6 +13,7 @@ from components.my_functions import update_clf, update_anomaly_scores, generate_
 from components.lat_long import addLatLong
 from components.state import state_to_abr
 from components.figure_functions import get_plot, get_scatter_mapbox, get_choropleth
+from statistics import mean
 
 ###Reading .csv files###
 ###And sort according to date###
@@ -235,20 +236,38 @@ def update_ml_graph(my_data, est_val, cont_val, rand_val):
     clf.fit(X_train)
     if my_data == 'Valid':
         X_val_res = update_anomaly_scores(clf, le2, le1, X_valid)
+        y_pred_acc = X_val_res['anomaly']
+        val_scores = X_val_res['scores']
+        acc = 'Anomalies Percentage: ' + str(list(y_pred_acc).count(-1)/y_pred_acc.shape[0]*100) + '%'
+        acc2 = 'Dataset Accuracy : ' + str(list(y_pred_acc).count(1)/y_pred_acc.shape[0]*100) + '%'
+        anomaly_val_scores = [i for i in val_scores if i < 0]
+        norm_val_scores = [i for i in val_scores if i>=0]
+        score1= " .Mean Anomaly scores: " + str(mean(anomaly_val_scores))
+        score2 = " .Mean Anomaly scores: " + str(mean(norm_val_scores))
+
         overall = X_val_res.groupby('state').sum()
         fig9 = get_choropleth(overall, overall.index, 'anomaly')
 
         sum_incorrect = is_anomaly(X_val_res, -1)
         fig11 = get_choropleth(sum_incorrect, sum_incorrect.index, 'anomaly')
-        return dcc.Graph(figure=fig11), dcc.Graph(figure=fig9)
+        return dcc.Graph(figure=fig11),acc, score1, dcc.Graph(figure=fig9), acc2, score2
     else:
         X_train_res = update_anomaly_scores(clf, le2, le1, X_train)
+        y_train_acc = X_train_res['anomaly']
+        val_scores = X_train_res['scores']
+        acc3 = 'Anomalies Percentage: ' + str(list(y_train_acc).count(-1)/y_train_acc.shape[0]*100) + '%'
+        acc4 = 'Dataset Accuracy : ' + str(list(y_train_acc).count(1)/y_train_acc.shape[0]*100) + '%'
+        anomaly_val_scores = [i for i in val_scores if i < 0]
+        norm_val_scores = [i for i in val_scores if i>=0]
+        score3= " .Mean Anomaly scores: " + str(mean(anomaly_val_scores))
+        score4 = " .Mean Anomaly scores: " + str(mean(norm_val_scores))
+
         overall = X_train_res.groupby('state').sum()
         fig10 = get_choropleth(overall, overall.index, 'anomaly')
 
         train_incorrect = is_anomaly(X_train_res, -1)
         fig12 = get_choropleth(train_incorrect, train_incorrect.index, 'anomaly')
-        return dcc.Graph(figure=fig12), dcc.Graph(figure=fig10)
+        return dcc.Graph(figure=fig12), acc3, score3, dcc.Graph(figure=fig10), acc4, score4
 
 
 
