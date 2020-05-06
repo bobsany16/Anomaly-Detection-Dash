@@ -9,7 +9,6 @@ from sklearn.utils import shuffle
 import numpy as np
 from sklearn.ensemble import IsolationForest
 from sklearn import preprocessing
-
 from components.my_functions import update_clf, update_anomaly_scores, generate_table, combineCD, is_anomaly
 from components.lat_long import addLatLong
 from components.state import state_to_abr
