@@ -9,7 +9,7 @@ from sklearn.utils import shuffle
 import numpy as np
 from sklearn.ensemble import IsolationForest
 from sklearn import preprocessing
-from components.my_functions import update_clf, update_anomaly_scores, generate_table, combineCD
+from components.my_functions import update_clf, update_anomaly_scores, generate_table, combineCD, is_anomaly
 from components.lat_long import addLatLong
 from components.state import state_to_abr
 from components.figure_functions import get_plot, get_scatter_mapbox, get_choropleth
@@ -41,8 +41,6 @@ df6 = df6.drop(['startdate'], axis=1)
 
 
 df6['state'] = state_to_abr(df6)
-df2['lat'] = addLatLong(df2, 'City', 'Latitude')
-df2['long'] = addLatLong(df2, 'City', 'Longitude')
 df3 = df2
 df4 = df3
 df_clinton = df2.drop(['adjpoll_trump'], axis=1)
@@ -53,13 +51,8 @@ df_trump['state']=state_to_abr(df_trump)
 ###Figures###
 fig = get_plot(df_clinton, 'scatter', 'adjpoll_clinton')
 fig2 = get_plot(df_trump, 'scatter', 'adjpoll_trump')
-fig3 = px.strip(df4, x="startdate", y="grade", orientation="h", color='state')
 fig4 = get_plot(df_clinton, 'box', 'adjpoll_clinton')
 fig5 = get_plot(df_trump, 'box', 'adjpoll_trump')
-#fig6 = get_scatter_mapbox(df_clinton, 'adjpoll_clinton')
-#fig7 = get_scatter_mapbox(df_trump, 'adjpoll_trump')
-fig6 = get_choropleth(df_clinton, 'adjpoll_clinton', ["state", 'adjpoll_clinton'])
-fig7 = get_choropleth(df_trump, 'adjpoll_trump', ["state", 'adjpoll_trump'])
 
 
 ###Machine Learning Part###
@@ -129,11 +122,6 @@ tab1_content = html.Div([
              style={'overflow-y': 'scroll', 'display': 'flex', 'text-align': 'center', 'justify-content': 'center'}),
     html.H2(children='Data Visualization', style={
             'font-weight': '900', 'text-align': 'center'}),
-    html.Div(children='''
-        Overall poll results distribution by grades of both candidates
-    '''),
-
-    dcc.Graph(figure=fig3),
     html.Div(children=[
         html.H4(children='Choose Candidate', style={'font-weight': '900'}),
         html.Div(children='''
@@ -158,9 +146,9 @@ tab1_content = html.Div([
 )
 def update_graph(value):
     if (value == 'Trump'):
-        return dcc.Graph(figure=fig2), dcc.Graph(figure=fig5), dcc.Graph(figure=fig7)
+        return dcc.Graph(figure=fig2), dcc.Graph(figure=fig5)
     else:
-        return dcc.Graph(figure=fig), dcc.Graph(figure=fig4), dcc.Graph(figure=fig6)
+        return dcc.Graph(figure=fig), dcc.Graph(figure=fig4)
 
 
 ###Tab2_content when clicked Tab1###
@@ -224,7 +212,8 @@ tab2_content = html.Div([
             dcc.Input(
             id="random-state-input", type="number",
             min=10, max=150, step=20, value=42, style={'margin-bottom': '2em'})
-        ])
+        ]),
+            html.P(children='''Note: The first graph is predicted anomalies by state before offset by predicted normal data points. The second graph is predicted anomalies by state after offset'''),
 
     ], style={'width': '40vw', 'height': '100%', 'display': 'flex', 'flex-direction': 'column'} ),  # End of input section
 
@@ -246,12 +235,20 @@ def update_ml_graph(my_data, est_val, cont_val, rand_val):
     clf.fit(X_train)
     if my_data == 'Valid':
         X_val_res = update_anomaly_scores(clf, le2, le1, X_valid)
-        fig9 = get_choropleth(X_val_res, 'anomaly', ["state", 'adjpoll_trump', 'adjpoll_clinton'])
-        return dcc.Graph(figure=fig9)
+        overall = X_val_res.groupby('state').sum()
+        fig9 = get_choropleth(overall, overall.index, 'anomaly')
+
+        sum_incorrect = is_anomaly(X_val_res, -1)
+        fig11 = get_choropleth(sum_incorrect, sum_incorrect.index, 'anomaly')
+        return dcc.Graph(figure=fig11), dcc.Graph(figure=fig9)
     else:
-        X_train_res = update_anomaly_scores(clf, le2, le1,X_train)
-        fig10 = get_choropleth(X_train_res, 'anomaly', ["state", 'adjpoll_trump', 'adjpoll_clinton'])
-        return dcc.Graph(figure=fig10)
+        X_train_res = update_anomaly_scores(clf, le2, le1, X_train)
+        overall = X_train_res.groupby('state').sum()
+        fig10 = get_choropleth(overall, overall.index, 'anomaly')
+
+        train_incorrect = is_anomaly(X_train_res, -1)
+        fig12 = get_choropleth(train_incorrect, train_incorrect.index, 'anomaly')
+        return dcc.Graph(figure=fig12), dcc.Graph(figure=fig10)
 
 
 

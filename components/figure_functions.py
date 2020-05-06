@@ -19,6 +19,6 @@ def get_scatter_mapbox(my_data, size_var):
     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
     return fig
 
-def get_choropleth(my_data, cat_color, hover_list):
-    return px.choropleth(my_data, locations=list(my_data['state']), locationmode="USA-states", color=cat_color, scope="usa",
-                             color_continuous_scale='Blackbody', hover_name="state", hover_data=hover_list)
+def get_choropleth(my_data, locations, cat_color):
+    return px.choropleth(my_data, locations=my_data.index, locationmode="USA-states", color=cat_color, scope="usa",
+                             color_continuous_scale='ice', hover_name=my_data.index, hover_data=['adjpoll_clinton', 'adjpoll_trump'])

@@ -37,3 +37,11 @@ def combineCD(state, my_data, n):
         my_state = state + " CD-" + str(i)
         my_data.loc[my_data['state'] == my_state, 'state'] = state
     return my_data[my_data['state'] == state].shape
+
+def is_anomaly(my_data, anom_yes_no):
+    my_sum = my_data[my_data['anomaly']==anom_yes_no].groupby('state').sum()
+    if anom_yes_no == 1:
+        return my_sum
+    else: 
+        my_sum['anomaly']=[i*-1 for i in list(my_sum['anomaly'])] 
+        return my_sum
